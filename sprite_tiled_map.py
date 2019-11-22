@@ -32,8 +32,8 @@ JUMP_SPEED = 17
 GRAVITY = 1.8
 
 # Positions
-POSITION_DATA = pd.read_csv("positions.csv")
-CURRENT_PLAYER = 0
+POSITION_DATA = pd.read_csv("position_data.csv")
+CURRENT_PLAYER = int(2)
 
 
 class MyGame(arcade.Window):
@@ -125,8 +125,8 @@ class MyGame(arcade.Window):
             arcade.set_background_color(my_map.backgroundcolor)
 
         # --- Switch players
-        if self.player_sprite is None:
-            self.choose_player(CURRENT_PLAYER)
+        # if self.player_sprite is None:
+        self.choose_player(CURRENT_PLAYER)
 
         # Keep player from running through the wall_list layer
         self.physics_engine = \
@@ -184,7 +184,7 @@ class MyGame(arcade.Window):
             self.player_sprite.change_x = -MOVEMENT_SPEED
         elif key == arcade.key.RIGHT:
             self.player_sprite.change_x = MOVEMENT_SPEED
-        elif key == arcade.key.F:
+        elif key == arcade.key.F or key == arcade.key.ESCAPE:
             # User hits f. Flip between full and not full screen.
             self.set_fullscreen(not self.fullscreen)
 
@@ -195,16 +195,26 @@ class MyGame(arcade.Window):
         """
         Called when the user releases the key.
         """
+        global CURRENT_PLAYER
         if key == arcade.key.LEFT or key == arcade.key.RIGHT:
             self.player_sprite.change_x = 0
         elif key == arcade.key.KEY_1:
-            self.choose_player(0)
+            CURRENT_PLAYER = 0
             self.setup()
         elif key == arcade.key.KEY_2:
-            self.choose_player(1)
+            CURRENT_PLAYER = 1
             self.setup()
         elif key == arcade.key.KEY_3:
-            self.choose_player(2)
+            CURRENT_PLAYER = 2
+            self.setup()
+        elif key == arcade.key.KEY_4:
+            CURRENT_PLAYER = 3
+            self.setup()
+        elif key == arcade.key.KEY_5:
+            CURRENT_PLAYER = 4
+            self.setup()
+        elif key == arcade.key.KEY_6:
+            CURRENT_PLAYER = 5
             self.setup()
 
     def on_update(self, delta_time):
@@ -265,12 +275,13 @@ class MyGame(arcade.Window):
         And subsequently from on_key_release
         """
         if self.first_time:
-            self.player_sprite = self.player_list[player]
+            self.player_sprite = self.player_list[player]  # This works the first time
             self.first_time = False
         # if a player is switched, save the position of the current player first.
         else:
-            POSITION_DATA.at[CURRENT_PLAYER, 'x'] = int(self.player_sprite.center_x)
-            POSITION_DATA.at[CURRENT_PLAYER, 'y'] = int(self.player_sprite.bottom)
+            POSITION_DATA.at[player, 'x'] = int(self.player_sprite.center_x)
+            POSITION_DATA.at[player, 'y'] = int(self.player_sprite.bottom)
+            # POSITION_DATA.to_csv("position_data.csv")
             self.player_sprite = self.player_list[player]
 
 

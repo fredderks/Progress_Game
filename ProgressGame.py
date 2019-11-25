@@ -301,7 +301,7 @@ class MyGame(arcade.Window):
         else:
             POSITION_DATA.at[current, 'x'] = self.player_sprite.center_x
             POSITION_DATA.at[current, 'y'] = self.player_sprite.bottom
-            POSITION_DATA.to_csv("position_data.csv", index=False)
+            POSITION_DATA.to_csv("res/position_data.csv", index=False)
             self.player_sprite = self.char_list[chosen]
 
     def jump_on_choose(self):

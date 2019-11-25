@@ -32,8 +32,9 @@ JUMP_SPEED = 17
 GRAVITY = 1.8
 
 # Positions
-POSITION_DATA = pd.read_csv("positions.csv")
-CURRENT_PLAYER = 0
+POSITION_DATA = pd.read_csv("position_data.csv")
+CURRENT_PLAYER = int(0)
+CHOSEN_PLAYER = int(0)
 
 
 class MyGame(arcade.Window):
@@ -95,14 +96,6 @@ class MyGame(arcade.Window):
             arcade.Sprite("images/char6.png", SPRITE_SCALING)
         ]
 
-        # Starting position of the players
-        i = 0
-        for char in self.char_list:
-            char.center_x = int(POSITION_DATA.at[i, 'x'])
-            char.bottom = int(POSITION_DATA.at[i, 'y'])
-            self.player_list.append(char)
-            i += 1
-
         # Read in the tiled map
         my_map = arcade.read_tiled_map('mount.tmx', SPRITE_SCALING)
 
@@ -119,14 +112,23 @@ class MyGame(arcade.Window):
         # --- Text ---
         self.text_list = arcade.generate_sprites(my_map, 'Text', SPRITE_SCALING)
 
-        # --- Other stuff
-        # Set the background color
+        # --- Set the background color
         if my_map.backgroundcolor:
             arcade.set_background_color(my_map.backgroundcolor)
 
-        # --- Switch players
-        if self.player_sprite is None:
-            self.choose_player(CURRENT_PLAYER)
+        # --- Players ---
+        # --- Choose Player and save position of current player
+        global CURRENT_PLAYER
+        self.choose_player(CURRENT_PLAYER, CHOSEN_PLAYER)
+        CURRENT_PLAYER = CHOSEN_PLAYER
+
+        # --- Starting position of the players
+        i = 0
+        for char in self.char_list:
+            char.center_x = POSITION_DATA.at[i, 'x']
+            char.bottom = POSITION_DATA.at[i, 'y']
+            self.player_list.append(char)
+            i += 1
 
         # Keep player from running through the wall_list layer
         self.physics_engine = \
@@ -184,7 +186,7 @@ class MyGame(arcade.Window):
             self.player_sprite.change_x = -MOVEMENT_SPEED
         elif key == arcade.key.RIGHT:
             self.player_sprite.change_x = MOVEMENT_SPEED
-        elif key == arcade.key.F:
+        elif key == arcade.key.F or key == arcade.key.ESCAPE:
             # User hits f. Flip between full and not full screen.
             self.set_fullscreen(not self.fullscreen)
 
@@ -195,16 +197,26 @@ class MyGame(arcade.Window):
         """
         Called when the user releases the key.
         """
+        global CHOSEN_PLAYER
         if key == arcade.key.LEFT or key == arcade.key.RIGHT:
             self.player_sprite.change_x = 0
         elif key == arcade.key.KEY_1:
-            self.choose_player(0)
+            CHOSEN_PLAYER = 0
             self.setup()
         elif key == arcade.key.KEY_2:
-            self.choose_player(1)
+            CHOSEN_PLAYER = 1
             self.setup()
         elif key == arcade.key.KEY_3:
-            self.choose_player(2)
+            CHOSEN_PLAYER = 2
+            self.setup()
+        elif key == arcade.key.KEY_4:
+            CHOSEN_PLAYER = 3
+            self.setup()
+        elif key == arcade.key.KEY_5:
+            CHOSEN_PLAYER = 4
+            self.setup()
+        elif key == arcade.key.KEY_6:
+            CHOSEN_PLAYER = 5
             self.setup()
 
     def on_update(self, delta_time):
@@ -258,20 +270,21 @@ class MyGame(arcade.Window):
                                 self.view_bottom,
                                 SCREEN_HEIGHT + self.view_bottom)
 
-    def choose_player(self, player):
+    def choose_player(self, current, chosen):
         """
         Called when player is chosen [1 to 6]
         It is called at setup on initialisation
         And subsequently from on_key_release
         """
         if self.first_time:
-            self.player_sprite = self.player_list[player]
+            self.player_sprite = self.char_list[chosen]  # This works the first time
             self.first_time = False
         # if a player is switched, save the position of the current player first.
         else:
-            POSITION_DATA.at[CURRENT_PLAYER, 'x'] = int(self.player_sprite.center_x)
-            POSITION_DATA.at[CURRENT_PLAYER, 'y'] = int(self.player_sprite.bottom)
-            self.player_sprite = self.player_list[player]
+            POSITION_DATA.at[current, 'x'] = self.player_sprite.center_x
+            POSITION_DATA.at[current, 'y'] = self.player_sprite.bottom
+            # POSITION_DATA.to_csv("position_data.csv")
+            self.player_sprite = self.char_list[chosen]
 
 
 def main():

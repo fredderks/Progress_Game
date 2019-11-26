@@ -190,52 +190,53 @@ class MyGame(arcade.Window):
         """
         Called whenever the user presses a key.
         """
-        if key == arcade.key.UP:
+        global CHOSEN_PLAYER
+        if key in (arcade.key.UP, arcade.key.W):
             if self.physics_engine.can_jump():
                 self.player_sprite.change_y = JUMP_SPEED
-        elif key == arcade.key.LEFT:
+                self.player_sprite.change_x = 0
+        elif key in (arcade.key.LEFT, arcade.key.A):
             self.player_sprite.change_x = -MOVEMENT_SPEED
-        elif key == arcade.key.RIGHT:
+        elif key in (arcade.key.RIGHT, arcade.key.D):
             self.player_sprite.change_x = MOVEMENT_SPEED
-        elif key == arcade.key.F or key == arcade.key.ESCAPE:
+        elif key in (arcade.key.F, arcade.key.ESCAPE):
             # User hits f. Flip between full and not full screen.
             self.set_fullscreen(not self.fullscreen)
         elif key == arcade.key.S:
             POSITION_DATA.at[CURRENT_PLAYER, 'x'] = self.player_sprite.center_x
             POSITION_DATA.at[CURRENT_PLAYER, 'y'] = self.player_sprite.bottom
             POSITION_DATA.to_csv('res\position_data.csv', index=False)
+        elif key in (arcade.key.KEY_1, arcade.key.NUM_1):
+            CHOSEN_PLAYER = 0
+            self.setup()
+            self.jump_on_choose()
+        elif key in (arcade.key.KEY_2, arcade.key.NUM_2):
+            CHOSEN_PLAYER = 1
+            self.setup()
+            self.jump_on_choose()
+        elif key in (arcade.key.KEY_3, arcade.key.NUM_3):
+            CHOSEN_PLAYER = 2
+            self.setup()
+            self.jump_on_choose()
+        elif key in (arcade.key.KEY_4, arcade.key.NUM_4):
+            CHOSEN_PLAYER = 3
+            self.setup()
+            self.jump_on_choose()
+        elif key in (arcade.key.KEY_5, arcade.key.NUM_5):
+            CHOSEN_PLAYER = 4
+            self.setup()
+            self.jump_on_choose()
+        elif key in (arcade.key.KEY_6, arcade.key.NUM_6):
+            CHOSEN_PLAYER = 5
+            self.setup()
+            self.jump_on_choose()
 
     def on_key_release(self, key, modifiers):
         """
         Called when the user releases the key.
         """
-        global CHOSEN_PLAYER
-        if key == arcade.key.LEFT or key == arcade.key.RIGHT:
+        if key in (arcade.key.LEFT, arcade.key.RIGHT, arcade.key.A, arcade.key.D):
             self.player_sprite.change_x = 0
-        elif key == arcade.key.KEY_1 or key == arcade.key.NUM_1:
-            CHOSEN_PLAYER = 0
-            self.setup()
-            self.jump_on_choose()
-        elif key == arcade.key.KEY_2 or key == arcade.key.NUM_2:
-            CHOSEN_PLAYER = 1
-            self.setup()
-            self.jump_on_choose()
-        elif key == arcade.key.KEY_3 or key == arcade.key.NUM_3:
-            CHOSEN_PLAYER = 2
-            self.setup()
-            self.jump_on_choose()
-        elif key == arcade.key.KEY_4 or key == arcade.key.NUM_4:
-            CHOSEN_PLAYER = 3
-            self.setup()
-            self.jump_on_choose()
-        elif key == arcade.key.KEY_5 or key == arcade.key.NUM_5:
-            CHOSEN_PLAYER = 4
-            self.setup()
-            self.jump_on_choose()
-        elif key == arcade.key.KEY_6 or key == arcade.key.NUM_6:
-            CHOSEN_PLAYER = 5
-            self.setup()
-            self.jump_on_choose()
 
     def on_update(self, delta_time):
         """ Movement and game logic """

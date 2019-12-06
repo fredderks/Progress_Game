@@ -7,6 +7,9 @@ Artwork from: http://kenney.nl
 Tiled available from: http://www.mapeditor.org/
 """
 
+# TODO 13-12-2019: Champage fles open, achtergrond wolkjes, voorgrond berg opfleuren
+# http://arcade.academy/examples/sprite_collect_coins_move_down.html#sprite-collect-coins-move-down
+
 import arcade
 import os
 import pandas as pd
@@ -56,7 +59,8 @@ class MyGame(arcade.Window):
         # Sprite lists
         self.wall_list = None
         self.player_list = None
-        self.coin_list = None
+        self.champagne_list = None
+        self.background_list = None
         self.text_list = None
         self.char_list = None
 
@@ -70,6 +74,7 @@ class MyGame(arcade.Window):
         self.view_bottom = 0
         self.end_of_map = 0
         self.game_over = False
+        self.top_level = False
         self.last_time = None
         self.frame_count = 0
         self.fps_message = None
@@ -83,7 +88,7 @@ class MyGame(arcade.Window):
 
         # Sprite lists
         self.player_list = arcade.SpriteList()
-        self.coin_list = arcade.SpriteList()
+        self.champagne_list = arcade.SpriteList()
         self.text_list = arcade.SpriteList()
 
         # Set up the players
@@ -106,11 +111,17 @@ class MyGame(arcade.Window):
         # Calculate the right edge of the my_map in pixels
         self.end_of_map = len(map_array[0]) * GRID_PIXEL_SIZE
 
+        # --- Background ---
+        self.background_list = arcade.generate_sprites(my_map, 'Background', SPRITE_SCALING)
+
         # --- Platforms ---
         self.wall_list = arcade.generate_sprites(my_map, 'Platforms', SPRITE_SCALING)
 
         # --- Text ---
         self.text_list = arcade.generate_sprites(my_map, 'Text', SPRITE_SCALING)
+
+        # --- Champagne ---
+        self.champagne_list = arcade.generate_sprites(my_map, 'Champagne', SPRITE_SCALING)
 
         # --- Set the background color
         if my_map.backgroundcolor:
@@ -152,11 +163,11 @@ class MyGame(arcade.Window):
 
         # This command has to happen before we start drawing
         arcade.start_render()
-        super().on_draw()
+        # super().on_draw()
 
         # Draw all the sprites.
         self.wall_list.draw()
-        self.coin_list.draw()
+        self.background_list.draw()
         self.text_list.draw()
         self.player_list.draw()
 
@@ -181,6 +192,9 @@ class MyGame(arcade.Window):
                          screen_width // 8 + 800, screen_height // 8,
                          arcade.color.BLACK, 16, align="left",
                          font_name=BEBAS)
+
+        if self.top_level:
+            self.champagne_list.draw()
 
         if self.game_over:
             arcade.draw_text("\nGame Over", self.view_left + 600, self.view_bottom + 600,
@@ -249,6 +263,19 @@ class MyGame(arcade.Window):
         # example though.)
         if not self.game_over:
             self.physics_engine.update()
+
+        # Draw Champagne Bottle if player is on top level
+        if self.player_sprite.bottom > 600:                 # PLEASE FOR THE LOVE OF GOD WHEN YOU HAVE SOME SPARE TIME
+            sprites_top_level = False                       # REWRITE THIS SEGMENT OF CODE
+            sprite_positions = []
+            for i in range(len(POSITION_DATA)):
+                if i == CURRENT_PLAYER:
+                    continue
+                sprite_positions.append(POSITION_DATA.at[i, 'y'])
+            if min(sprite_positions) > 600:
+                self.top_level = True
+        else:
+            self.top_level = False
 
         # --- Manage Scrolling ---
 

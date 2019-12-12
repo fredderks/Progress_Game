@@ -2,14 +2,12 @@
 Load a tiled map file and run around with multiple players
 
 Author: Fred Derks
-Version: 25-11-2019
+Version: 12-12-2019
 Artwork from: http://kenney.nl
 Tiled available from: http://www.mapeditor.org/
 """
 
-# TODO 13-12-2019: Champage fles open, achtergrond wolkjes, voorgrond berg opfleuren
-# http://arcade.academy/examples/sprite_collect_coins_move_down.html#sprite-collect-coins-move-down
-
+import random
 import arcade
 import os
 import pandas as pd
@@ -19,13 +17,14 @@ SCREEN_WIDTH = 1600
 SCREEN_HEIGHT = 900
 SCREEN_TITLE = "Progress Game"
 SPRITE_PIXEL_SIZE = 64
+CLOUD_COUNT = 12
 GRID_PIXEL_SIZE = int(SPRITE_PIXEL_SIZE * SPRITE_SCALING)
 BEBAS = 'res\\BebasNeue Bold.otf'
 
 # How many pixels to keep as a minimum margin between the character
 # and the edge of the screen.
-VIEWPORT_MARGIN_TOP = 60
-VIEWPORT_MARGIN_BOTTOM = 60
+VIEWPORT_MARGIN_TOP = 270
+VIEWPORT_MARGIN_BOTTOM = 120
 VIEWPORT_RIGHT_MARGIN = 270
 VIEWPORT_LEFT_MARGIN = 270
 
@@ -33,12 +32,57 @@ VIEWPORT_LEFT_MARGIN = 270
 MOVEMENT_SPEED = 5
 JUMP_SPEED = 17
 GRAVITY = 1.8
+ANGLE_SPEED = 5
 
 # Positions
 POSITION_DATA = pd.read_csv('res\position_data.csv')
 CURRENT_PLAYER = int(0)
 CHOSEN_PLAYER = int(0)
+CURRENT_ANGLE = 0
+CURRENT_RIGHT = True
+ANIMATION_COUNTER = 0
+ANIMATION_DURATION = 5
 
+
+class Cloud(arcade.Sprite):
+    """
+    This class represents the clouds on our screen. It is a child class of
+    the arcade library's "Sprite" class.
+    """
+
+    def reset_pos(self):
+
+        # Reset the cloud to a random spot above the screen
+        self.center_y = random.randrange(SCREEN_HEIGHT - 200, SCREEN_HEIGHT + 300)
+        self.center_x = random.randrange(-300, -200)
+
+    def update(self):
+
+        # Move the cloud
+        self.center_x += 0.3
+
+        # See if the cloud has fallen off the bottom of the screen.
+        # If so, reset it.
+        if self.left > SCREEN_WIDTH + 300:
+            self.reset_pos()
+
+
+class Champagne(arcade.Sprite):
+    """
+    This class represents the clouds on our screen. It is a child class of
+    the arcade library's "Sprite" class.
+    """
+
+    def update(self):
+        # Rotate the bottle
+        global CURRENT_ANGLE
+
+        if CURRENT_RIGHT:
+            self.angle += ANGLE_SPEED
+            CURRENT_ANGLE += 1
+        else:
+            self.angle -= ANGLE_SPEED
+            CURRENT_ANGLE -= 1
 
 class MyGame(arcade.Window):
     """ Main application class. """
@@ -56,13 +100,16 @@ class MyGame(arcade.Window):
         file_path = os.path.dirname(os.path.abspath(__file__))
         os.chdir(file_path)
 
-        # Sprite lists
+        # # Sprite lists
         self.wall_list = None
         self.player_list = None
+        self.decorations_list = None
         self.champagne_list = None
         self.background_list = None
         self.text_list = None
         self.char_list = None
+        self.cloud_sprite_list = None
+        self.champagne_sprite_list = None
 
         # Set up the player
         self.score = 0
@@ -78,6 +125,7 @@ class MyGame(arcade.Window):
         self.last_time = None
         self.frame_count = 0
         self.fps_message = None
+        self.background = arcade.load_texture("res/mount_bg2.jpg")
 
         # Set up other logic
         self.theme = None
@@ -88,8 +136,13 @@ class MyGame(arcade.Window):
 
         # Sprite lists
         self.player_list = arcade.SpriteList()
+        self.decorations_list = arcade.SpriteList()
         self.champagne_list = arcade.SpriteList()
         self.text_list = arcade.SpriteList()
+        self.background_list = arcade.SpriteList()
+        self.cloud_sprite_list = arcade.SpriteList()
+        self.champagne_sprite_list = arcade.SpriteList()
+
 
         # Set up the players
         self.char_list = [
@@ -98,8 +151,36 @@ class MyGame(arcade.Window):
             arcade.Sprite("res/alexandra.png", SPRITE_SCALING),
             arcade.Sprite("res/bart.png", SPRITE_SCALING),
             arcade.Sprite("res/jessica.png", SPRITE_SCALING),
-            arcade.Sprite("res/evelien.png", SPRITE_SCALING)
+            # arcade.Sprite("res/evelien.png", SPRITE_SCALING)
         ]
+
+        # Create the clouds
+        for i in range(CLOUD_COUNT):
+
+            # Create the cloud instance
+            cloud = Cloud("res/cloud.png", SPRITE_SCALING)
+            doublecloud = Cloud("res/doublecloud.png", SPRITE_SCALING)
+
+            # Position the cloud
+            cloud.center_x = random.randrange(-200, 2200)
+            cloud.center_y = random.randrange(SCREEN_HEIGHT - 200, SCREEN_HEIGHT + 300)
+
+            doublecloud.center_x = random.randrange(-200, 2200)
+            doublecloud.center_y = random.randrange(SCREEN_HEIGHT - 200, SCREEN_HEIGHT + 300)
+
+            # Add the cloud to the lists
+            self.cloud_sprite_list.append(cloud)
+            self.cloud_sprite_list.append(doublecloud)
+
+        # Create the Champagne
+        champagne = Champagne("res/champagne-closed.png", SPRITE_SCALING)
+
+        # Position the champagne bottle
+        champagne.center_x = 1471
+        champagne.bottom = 704
+
+        # Add the champagne bottle to the lists
+        self.champagne_sprite_list.append(champagne)
 
         # Read in the tiled map
         my_map = arcade.read_tiled_map('mount.tmx', SPRITE_SCALING)
@@ -113,6 +194,9 @@ class MyGame(arcade.Window):
 
         # --- Background ---
         self.background_list = arcade.generate_sprites(my_map, 'Background', SPRITE_SCALING)
+
+        # --- Decorations ---
+        self.decorations_list = arcade.generate_sprites(my_map, 'Decorations', SPRITE_SCALING)
 
         # --- Platforms ---
         self.wall_list = arcade.generate_sprites(my_map, 'Platforms', SPRITE_SCALING)
@@ -149,8 +233,8 @@ class MyGame(arcade.Window):
 
         # Set the view port boundaries
         # These numbers set where we have 'scrolled' to.
-        self.view_left = 0
-        self.view_bottom = 0
+        # self.view_left = 0
+        # self.view_bottom = 0
 
         self.game_over = False
 
@@ -163,13 +247,17 @@ class MyGame(arcade.Window):
 
         # This command has to happen before we start drawing
         arcade.start_render()
-        # super().on_draw()
+        arcade.draw_texture_rectangle((SCREEN_WIDTH // 2) + self.view_left, (SCREEN_HEIGHT // 2) + self.view_bottom,
+                                      SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
 
         # Draw all the sprites.
-        self.wall_list.draw()
         self.background_list.draw()
+        self.wall_list.draw()
+        self.decorations_list.draw()
         self.text_list.draw()
         self.player_list.draw()
+        self.cloud_sprite_list.draw()
+        self.champagne_sprite_list.draw()
 
         # Get viewport dimensions
         screen_width, screen_height = self.get_size()
@@ -187,14 +275,27 @@ class MyGame(arcade.Window):
                          '2. Heleen\n\n'
                          '3. Alexandra\n\n'
                          '4. Bart\n\n'
-                         '5. Jessica\n\n'
-                         '6. Evelien',
+                         '5. Jessica',
                          screen_width // 8 + 800, screen_height // 8,
                          arcade.color.BLACK, 16, align="left",
                          font_name=BEBAS)
 
         if self.top_level:
-            self.champagne_list.draw()
+            global CURRENT_ANGLE
+            global CURRENT_RIGHT
+            global ANIMATION_COUNTER
+
+            if ANIMATION_COUNTER < ANIMATION_DURATION:
+                self.champagne_sprite_list.update()
+            elif ANIMATION_COUNTER > 35:
+                self.champagne_list.draw()
+
+            if CURRENT_ANGLE == 10:
+                CURRENT_RIGHT = False
+            elif CURRENT_ANGLE == -10:
+                CURRENT_RIGHT = True
+            elif CURRENT_ANGLE == 0:
+                ANIMATION_COUNTER += 1
 
         if self.game_over:
             arcade.draw_text("\nGame Over", self.view_left + 600, self.view_bottom + 600,
@@ -240,10 +341,10 @@ class MyGame(arcade.Window):
             CHOSEN_PLAYER = 4
             self.setup()
             self.jump_on_choose()
-        elif key in (arcade.key.KEY_6, arcade.key.NUM_6):
-            CHOSEN_PLAYER = 5
-            self.setup()
-            self.jump_on_choose()
+        # elif key in (arcade.key.KEY_6, arcade.key.NUM_6):
+        #     CHOSEN_PLAYER = 5
+        #     self.setup()
+        #     self.jump_on_choose()
 
     def on_key_release(self, key, modifiers):
         """
@@ -255,6 +356,8 @@ class MyGame(arcade.Window):
     def on_update(self, delta_time):
         """ Movement and game logic """
 
+        self.cloud_sprite_list.update()
+
         # Game over when sprite reaches end of map
         if self.player_sprite.right >= self.end_of_map or self.player_sprite.left <= -100:
             self.game_over = True
@@ -265,6 +368,7 @@ class MyGame(arcade.Window):
             self.physics_engine.update()
 
         # Draw Champagne Bottle if player is on top level
+        global ANIMATION_COUNTER
         if self.player_sprite.bottom > 600:                 # PLEASE FOR THE LOVE OF GOD WHEN YOU HAVE SOME SPARE TIME
             sprites_top_level = False                       # REWRITE THIS SEGMENT OF CODE
             sprite_positions = []
@@ -276,6 +380,7 @@ class MyGame(arcade.Window):
                 self.top_level = True
         else:
             self.top_level = False
+            ANIMATION_COUNTER = 0
 
         # --- Manage Scrolling ---
 
@@ -318,7 +423,7 @@ class MyGame(arcade.Window):
 
     def choose_player(self, current, chosen):
         """
-        Called when player is chosen [1 to 6]
+        Called when player is chosen [1 to 5]
         It is called at setup on initialisation
         And subsequently from on_key_release
         """
@@ -335,6 +440,10 @@ class MyGame(arcade.Window):
     def jump_on_choose(self):
         if self.physics_engine.can_jump():
             self.player_sprite.change_y = JUMP_SPEED / 2
+
+    # def rotate_champagne(self):
+    #     self.champagne_sprite_list.change_angle = ANGLE_SPEED
+    #     self.champagne_sprite_list.update()
 
 
 def main():

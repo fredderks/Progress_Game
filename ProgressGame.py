@@ -8,12 +8,12 @@ Tiled available from: http://www.mapeditor.org/
 """
 
 import random
-import arcade
 import os
 import sys
 import pandas as pd
+import arcade
 
-os.chdir(sys.path[0])
+os.chdir(sys.path[0])               # Change working directory to the one in which this script is located
 print(os.getcwd())
 
 SPRITE_SCALING = 0.5
@@ -64,7 +64,7 @@ class Cloud(arcade.Sprite):
 
         # See if the cloud has fallen off the bottom of the screen.
         # If so, reset it.
-        if self.left > SCREEN_WIDTH + 300:
+        if self.left > SCREEN_WIDTH + 400:
             self.reset_pos()
 
 
@@ -161,10 +161,10 @@ class MyGame(arcade.Window):
 
             # Position the cloud
             cloud.center_x = random.randrange(-200, 2200)
-            cloud.center_y = random.randrange(SCREEN_HEIGHT - 200, SCREEN_HEIGHT + 300)
+            cloud.center_y = random.randrange(SCREEN_HEIGHT - 100, SCREEN_HEIGHT + 300)
 
             doublecloud.center_x = random.randrange(-200, 2200)
-            doublecloud.center_y = random.randrange(SCREEN_HEIGHT - 200, SCREEN_HEIGHT + 300)
+            doublecloud.center_y = random.randrange(SCREEN_HEIGHT - 100, SCREEN_HEIGHT + 300)
 
             # Add the cloud to the lists
             self.cloud_sprite_list.append(cloud)
@@ -174,8 +174,8 @@ class MyGame(arcade.Window):
         champagne = Champagne("res/champagne-closed.png", SPRITE_SCALING)
 
         # Position the champagne bottle
-        champagne.center_x = 1471
-        champagne.bottom = 704
+        champagne.center_x = 1728
+        champagne.bottom = 864
 
         # Add the champagne bottle to the lists
         self.champagne_sprite_list.append(champagne)
@@ -262,7 +262,7 @@ class MyGame(arcade.Window):
                          'Choose a player using the number keys\n\n'
                          'Press F to toggle between full screen and windowed mode.\n\n'
                          'Press S to save the positions of the players before closing the window',
-                         screen_width // 8 + 200, screen_height // 6,
+                         screen_width // 4 + 250, screen_height // 4 + 75,
                          arcade.color.BLACK, 16, align="center",
                          font_name=BEBAS)
 
@@ -271,7 +271,7 @@ class MyGame(arcade.Window):
                          '3. Alexandra\n\n'
                          '4. Bart\n\n'
                          '5. Jessica',
-                         screen_width // 8 + 800, screen_height // 6,
+                         screen_width // 4 + 850, screen_height // 4 + 75,
                          arcade.color.BLACK, 16, align="left",
                          font_name=BEBAS)
 
@@ -361,15 +361,15 @@ class MyGame(arcade.Window):
 
         # Draw Champagne Bottle if player is on top level
         global ANIMATION_COUNTER
-        if self.player_sprite.bottom > 600:
+        if self.player_sprite.bottom > 670:
             sprite_positions = []
             for i in range(len(self.char_list)):         # Get positions for all sprites
                 if i == CURRENT_PLAYER:
                     continue                            # Skip current sprite
                 sprite_positions.append(POSITION_DATA.at[i, 'y'])
-            if min(sprite_positions) > 600:             # If all sprites are above 600 px, top level logic is true
+            if min(sprite_positions) > 670:             # If all sprites are above 600 px, top level logic is true
                 self.top_level = True
-        elif self.player_sprite.bottom <= 600 and BOTTLE_ANGLE == 0:
+        elif self.player_sprite.bottom <= 670 and BOTTLE_ANGLE == 0:
             self.top_level = False
             ANIMATION_COUNTER = 0                       # Reset animation when user leaves the platform
 

@@ -363,7 +363,7 @@ class MyGame(arcade.Window):
         global ANIMATION_COUNTER
         if self.player_sprite.bottom > 600:
             sprite_positions = []
-            for i in range(len(POSITION_DATA)):         # Get positions for all sprites
+            for i in range(len(self.char_list)):         # Get positions for all sprites
                 if i == CURRENT_PLAYER:
                     continue                            # Skip current sprite
                 sprite_positions.append(POSITION_DATA.at[i, 'y'])

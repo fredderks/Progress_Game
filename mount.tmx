@@ -3,7 +3,7 @@
  <editorsettings>
   <export target="." format="csv"/>
  </editorsettings>
- <tileset firstgid="1" name="terrain_tiles" tilewidth="350" tileheight="319" tilecount="28" columns="0">
+ <tileset firstgid="1" name="terrain_tiles" tilewidth="350" tileheight="319" tilecount="25" columns="0">
   <grid orientation="orthogonal" width="1" height="1"/>
   <tile id="0">
    <image width="64" height="64" source="res/grassCenter.png"/>
@@ -69,15 +69,6 @@
   </tile>
   <tile id="23">
    <image width="198" height="128" source="res/doublerocks.png"/>
-  </tile>
-  <tile id="24">
-   <image width="128" height="62" source="res/horizontalrock.png"/>
-  </tile>
-  <tile id="25">
-   <image width="172" height="128" source="res/tworocks.png"/>
-  </tile>
-  <tile id="26">
-   <image width="83" height="128" source="res/verticalrock.png"/>
   </tile>
   <tile id="27">
    <image width="350" height="192" source="res/waterfall.png"/>

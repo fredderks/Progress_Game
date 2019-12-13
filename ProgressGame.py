@@ -35,12 +35,12 @@ GRAVITY = 1.8
 ANGLE_SPEED = 5
 
 # Positions
-POSITION_DATA = pd.read_csv('res\position_data.csv')
+POSITION_DATA = pd.read_csv(r'res\position_data.csv')
 CURRENT_PLAYER = int(0)
 CHOSEN_PLAYER = int(0)
-CURRENT_ANGLE = 0
-CURRENT_RIGHT = True
-ANIMATION_COUNTER = 0
+BOTTLE_ANGLE = 0  # Do not adjust
+TURN_RIGHT = True
+ANIMATION_COUNTER = 0  # Do not adjust
 ANIMATION_DURATION = 5
 
 
@@ -49,15 +49,12 @@ class Cloud(arcade.Sprite):
     This class represents the clouds on our screen. It is a child class of
     the arcade library's "Sprite" class.
     """
-
     def reset_pos(self):
-
         # Reset the cloud to a random spot above the screen
         self.center_y = random.randrange(SCREEN_HEIGHT - 200, SCREEN_HEIGHT + 300)
         self.center_x = random.randrange(-300, -200)
 
     def update(self):
-
         # Move the cloud
         self.center_x += 0.3
 
@@ -69,20 +66,20 @@ class Cloud(arcade.Sprite):
 
 class Champagne(arcade.Sprite):
     """
-    This class represents the clouds on our screen. It is a child class of
+    This class represents the champagne bottle on our screen. It is a child class of
     the arcade library's "Sprite" class.
     """
-
     def update(self):
         # Rotate the bottle
-        global CURRENT_ANGLE
+        global BOTTLE_ANGLE
 
-        if CURRENT_RIGHT:
+        if TURN_RIGHT:  # Swing Right
             self.angle += ANGLE_SPEED
-            CURRENT_ANGLE += 1
-        else:
+            BOTTLE_ANGLE += 1
+        else:  # Swing Left
             self.angle -= ANGLE_SPEED
-            CURRENT_ANGLE -= 1
+            BOTTLE_ANGLE -= 1
+
 
 class MyGame(arcade.Window):
     """ Main application class. """
@@ -143,7 +140,6 @@ class MyGame(arcade.Window):
         self.cloud_sprite_list = arcade.SpriteList()
         self.champagne_sprite_list = arcade.SpriteList()
 
-
         # Set up the players
         self.char_list = [
             arcade.Sprite("res/philip.png", SPRITE_SCALING),
@@ -151,12 +147,10 @@ class MyGame(arcade.Window):
             arcade.Sprite("res/alexandra.png", SPRITE_SCALING),
             arcade.Sprite("res/bart.png", SPRITE_SCALING),
             arcade.Sprite("res/jessica.png", SPRITE_SCALING),
-            # arcade.Sprite("res/evelien.png", SPRITE_SCALING)
         ]
 
         # Create the clouds
         for i in range(CLOUD_COUNT):
-
             # Create the cloud instance
             cloud = Cloud("res/cloud.png", SPRITE_SCALING)
             doublecloud = Cloud("res/doublecloud.png", SPRITE_SCALING)
@@ -231,11 +225,6 @@ class MyGame(arcade.Window):
                                            self.wall_list,
                                            gravity_constant=GRAVITY)
 
-        # Set the view port boundaries
-        # These numbers set where we have 'scrolled' to.
-        # self.view_left = 0
-        # self.view_bottom = 0
-
         self.game_over = False
 
     def on_draw(self):
@@ -247,6 +236,8 @@ class MyGame(arcade.Window):
 
         # This command has to happen before we start drawing
         arcade.start_render()
+
+        # Draw a rectangle containing our background picture
         arcade.draw_texture_rectangle((SCREEN_WIDTH // 2) + self.view_left, (SCREEN_HEIGHT // 2) + self.view_bottom,
                                       SCREEN_WIDTH, SCREEN_HEIGHT, self.background)
 
@@ -267,7 +258,7 @@ class MyGame(arcade.Window):
                          'Choose a player using the number keys\n\n'
                          'Press F to toggle between full screen and windowed mode.\n\n'
                          'Press S to save the positions of the players before closing the window',
-                         screen_width // 8 + 200, screen_height // 8,
+                         screen_width // 8 + 200, screen_height // 6,
                          arcade.color.BLACK, 16, align="center",
                          font_name=BEBAS)
 
@@ -276,25 +267,28 @@ class MyGame(arcade.Window):
                          '3. Alexandra\n\n'
                          '4. Bart\n\n'
                          '5. Jessica',
-                         screen_width // 8 + 800, screen_height // 8,
+                         screen_width // 8 + 800, screen_height // 6,
                          arcade.color.BLACK, 16, align="left",
                          font_name=BEBAS)
 
-        if self.top_level:
-            global CURRENT_ANGLE
-            global CURRENT_RIGHT
+        if self.top_level:                      # If all players are on the top level:
+            global BOTTLE_ANGLE
+            global TURN_RIGHT
             global ANIMATION_COUNTER
 
-            if ANIMATION_COUNTER < ANIMATION_DURATION:
+            if ANIMATION_COUNTER < ANIMATION_DURATION:  # Wiggle the champagne bottle a number of times
                 self.champagne_sprite_list.update()
-            elif ANIMATION_COUNTER > 35:
+            if ANIMATION_COUNTER > 35:          # Wait a bit and draw the open champagne bottle over it.
                 self.champagne_list.draw()
+            if ANIMATION_COUNTER > 45:
+                arcade.draw_text("\nWell Done!", self.view_left + 500, self.view_bottom + 600,
+                                 color=(255, 0, 115), font_size=140, font_name=BEBAS)
 
-            if CURRENT_ANGLE == 10:
-                CURRENT_RIGHT = False
-            elif CURRENT_ANGLE == -10:
-                CURRENT_RIGHT = True
-            elif CURRENT_ANGLE == 0:
+            if BOTTLE_ANGLE == 10:              # When bottle hits an angle of 10, start turning left
+                TURN_RIGHT = False
+            elif BOTTLE_ANGLE == -10:           # When bottle hits an angle of -10 start turning right
+                TURN_RIGHT = True
+            elif BOTTLE_ANGLE == 0:             # Add to the counter when the bottle passes vertical
                 ANIMATION_COUNTER += 1
 
         if self.game_over:
@@ -314,13 +308,12 @@ class MyGame(arcade.Window):
             self.player_sprite.change_x = -MOVEMENT_SPEED
         elif key in (arcade.key.RIGHT, arcade.key.D):
             self.player_sprite.change_x = MOVEMENT_SPEED
-        elif key in (arcade.key.F, arcade.key.ESCAPE):
-            # User hits f. Flip between full and not full screen.
+        elif key in (arcade.key.F, arcade.key.ESCAPE):             # User hits f. Flip between full and not full screen.
             self.set_fullscreen(not self.fullscreen)
         elif key == arcade.key.S:
             POSITION_DATA.at[CURRENT_PLAYER, 'x'] = self.player_sprite.center_x
             POSITION_DATA.at[CURRENT_PLAYER, 'y'] = self.player_sprite.bottom
-            POSITION_DATA.to_csv('res\position_data.csv', index=False)
+            POSITION_DATA.to_csv(r'res\position_data.csv', index=False)
         elif key in (arcade.key.KEY_1, arcade.key.NUM_1):
             CHOSEN_PLAYER = 0
             self.setup()
@@ -341,10 +334,6 @@ class MyGame(arcade.Window):
             CHOSEN_PLAYER = 4
             self.setup()
             self.jump_on_choose()
-        # elif key in (arcade.key.KEY_6, arcade.key.NUM_6):
-        #     CHOSEN_PLAYER = 5
-        #     self.setup()
-        #     self.jump_on_choose()
 
     def on_key_release(self, key, modifiers):
         """
@@ -362,25 +351,23 @@ class MyGame(arcade.Window):
         if self.player_sprite.right >= self.end_of_map or self.player_sprite.left <= -100:
             self.game_over = True
 
-        # Call update on all sprites (The sprites don't do much in this
-        # example though.)
+        # Call update on all sprites (The sprites don't do much in this example though.)
         if not self.game_over:
             self.physics_engine.update()
 
         # Draw Champagne Bottle if player is on top level
         global ANIMATION_COUNTER
-        if self.player_sprite.bottom > 600:                 # PLEASE FOR THE LOVE OF GOD WHEN YOU HAVE SOME SPARE TIME
-            sprites_top_level = False                       # REWRITE THIS SEGMENT OF CODE
+        if self.player_sprite.bottom > 600:
             sprite_positions = []
-            for i in range(len(POSITION_DATA)):
+            for i in range(len(POSITION_DATA)):         # Get positions for all sprites
                 if i == CURRENT_PLAYER:
-                    continue
+                    continue                            # Skip current sprite
                 sprite_positions.append(POSITION_DATA.at[i, 'y'])
-            if min(sprite_positions) > 600:
+            if min(sprite_positions) > 600:             # If all sprites are above 600 px, top level logic is true
                 self.top_level = True
-        else:
+        elif self.player_sprite.bottom <= 600 and BOTTLE_ANGLE == 0:
             self.top_level = False
-            ANIMATION_COUNTER = 0
+            ANIMATION_COUNTER = 0                       # Reset animation when user leaves the platform
 
         # --- Manage Scrolling ---
 
@@ -423,9 +410,9 @@ class MyGame(arcade.Window):
 
     def choose_player(self, current, chosen):
         """
-        Called when player is chosen [1 to 5]
-        It is called at setup on initialisation
-        And subsequently from on_key_release
+        Called when player is chosen [1 to 5].
+        It is called at setup on initialisation.
+        And subsequently from on_key_release.
         """
         if self.first_time:
             self.player_sprite = self.char_list[chosen]  # This works the first time
@@ -434,16 +421,12 @@ class MyGame(arcade.Window):
         else:
             POSITION_DATA.at[current, 'x'] = self.player_sprite.center_x
             POSITION_DATA.at[current, 'y'] = self.player_sprite.bottom
-            POSITION_DATA.to_csv("res/position_data.csv", index=False)
+            POSITION_DATA.to_csv(r'res/position_data.csv', index=False)
             self.player_sprite = self.char_list[chosen]
 
     def jump_on_choose(self):
         if self.physics_engine.can_jump():
             self.player_sprite.change_y = JUMP_SPEED / 2
-
-    # def rotate_champagne(self):
-    #     self.champagne_sprite_list.change_angle = ANGLE_SPEED
-    #     self.champagne_sprite_list.update()
 
 
 def main():

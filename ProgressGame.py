@@ -361,15 +361,15 @@ class MyGame(arcade.Window):
 
         # Draw Champagne Bottle if player is on top level
         global ANIMATION_COUNTER
-        if self.player_sprite.bottom > 670:
+        if self.player_sprite.bottom > 765:
             sprite_positions = []
             for i in range(len(self.char_list)):         # Get positions for all sprites
                 if i == CURRENT_PLAYER:
                     continue                            # Skip current sprite
                 sprite_positions.append(POSITION_DATA.at[i, 'y'])
-            if min(sprite_positions) > 670:             # If all sprites are above 600 px, top level logic is true
+            if min(sprite_positions) > 765:             # If all sprites are above 600 px, top level logic is true
                 self.top_level = True
-        elif self.player_sprite.bottom <= 670 and BOTTLE_ANGLE == 0:
+        elif self.player_sprite.bottom <= 765 and BOTTLE_ANGLE == 0:
             self.top_level = False
             ANIMATION_COUNTER = 0                       # Reset animation when user leaves the platform
 

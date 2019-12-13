@@ -10,7 +10,11 @@ Tiled available from: http://www.mapeditor.org/
 import random
 import arcade
 import os
+import sys
 import pandas as pd
+
+os.chdir(sys.path[0])
+print(os.getcwd())
 
 SPRITE_SCALING = 0.5
 SCREEN_WIDTH = 1600
@@ -19,7 +23,7 @@ SCREEN_TITLE = "Progress Game"
 SPRITE_PIXEL_SIZE = 64
 CLOUD_COUNT = 12
 GRID_PIXEL_SIZE = int(SPRITE_PIXEL_SIZE * SPRITE_SCALING)
-BEBAS = 'res\\BebasNeue Bold.otf'
+BEBAS = "res/BebasNeue Bold.otf"
 
 # How many pixels to keep as a minimum margin between the character
 # and the edge of the screen.
@@ -35,7 +39,7 @@ GRAVITY = 1.8
 ANGLE_SPEED = 5
 
 # Positions
-POSITION_DATA = pd.read_csv(r'res\position_data.csv')
+POSITION_DATA = pd.read_csv("res/position_data.csv")
 CURRENT_PLAYER = int(0)
 CHOSEN_PLAYER = int(0)
 BOTTLE_ANGLE = 0  # Do not adjust
@@ -313,7 +317,7 @@ class MyGame(arcade.Window):
         elif key == arcade.key.S:
             POSITION_DATA.at[CURRENT_PLAYER, 'x'] = self.player_sprite.center_x
             POSITION_DATA.at[CURRENT_PLAYER, 'y'] = self.player_sprite.bottom
-            POSITION_DATA.to_csv(r'res\position_data.csv', index=False)
+            POSITION_DATA.to_csv("res/position_data.csv", index=False)
         elif key in (arcade.key.KEY_1, arcade.key.NUM_1):
             CHOSEN_PLAYER = 0
             self.setup()
@@ -421,7 +425,7 @@ class MyGame(arcade.Window):
         else:
             POSITION_DATA.at[current, 'x'] = self.player_sprite.center_x
             POSITION_DATA.at[current, 'y'] = self.player_sprite.bottom
-            POSITION_DATA.to_csv(r'res/position_data.csv', index=False)
+            POSITION_DATA.to_csv("res/position_data.csv", index=False)
             self.player_sprite = self.char_list[chosen]
 
     def jump_on_choose(self):

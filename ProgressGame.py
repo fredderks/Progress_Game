@@ -2,9 +2,10 @@
 Load a tiled map file and run around with multiple players
 
 Author: Fred Derks
-Version: 12-12-2019
+Version: 23-12-2019
 Artwork from: http://kenney.nl
 Tiled available from: http://www.mapeditor.org/
+Tutorial at: http://arcade.academy/examples/platform_tutorial/index.html
 """
 
 import random
@@ -23,7 +24,7 @@ SCREEN_TITLE = "Progress Game"
 SPRITE_PIXEL_SIZE = 64
 CLOUD_COUNT = 12
 GRID_PIXEL_SIZE = int(SPRITE_PIXEL_SIZE * SPRITE_SCALING)
-BEBAS = "res/BebasNeue Bold.otf"
+BEBAS = "res/BebasNeue Bold.otf"                        # Calco lettertype
 
 # How many pixels to keep as a minimum margin between the character
 # and the edge of the screen.
@@ -42,6 +43,8 @@ ANGLE_SPEED = 5
 POSITION_DATA = pd.read_csv("res/position_data.csv")
 CURRENT_PLAYER = int(0)
 CHOSEN_PLAYER = int(0)
+
+# Animation
 BOTTLE_ANGLE = 0  # Do not adjust
 TURN_RIGHT = True
 ANIMATION_COUNTER = 0  # Do not adjust
@@ -62,7 +65,7 @@ class Cloud(arcade.Sprite):
         # Move the cloud
         self.center_x += 0.3
 
-        # See if the cloud has fallen off the bottom of the screen.
+        # See if the cloud has fallen off the edge of the screen.
         # If so, reset it.
         if self.left > SCREEN_WIDTH + 400:
             self.reset_pos()
@@ -77,10 +80,10 @@ class Champagne(arcade.Sprite):
         # Rotate the bottle
         global BOTTLE_ANGLE
 
-        if TURN_RIGHT:  # Swing Right
+        if TURN_RIGHT:                  # Swing Right
             self.angle += ANGLE_SPEED
             BOTTLE_ANGLE += 1
-        else:  # Swing Left
+        else:                           # Swing Left
             self.angle -= ANGLE_SPEED
             BOTTLE_ANGLE -= 1
 
@@ -89,19 +92,11 @@ class MyGame(arcade.Window):
     """ Main application class. """
 
     def __init__(self):
-        """
-        Initializer
-        """
+        """ Initializer """
+
         super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
 
-        # Set the working directory (where we expect to find files) to the same
-        # directory this .py file is in. You can leave this out of your own
-        # code, but it is needed to easily run the examples using "python -m"
-        # as mentioned at the top of this program.
-        file_path = os.path.dirname(os.path.abspath(__file__))
-        os.chdir(file_path)
-
-        # # Sprite lists
+        # Sprite lists
         self.wall_list = None
         self.player_list = None
         self.decorations_list = None
@@ -121,16 +116,14 @@ class MyGame(arcade.Window):
         self.view_left = 0
         self.view_bottom = 0
         self.end_of_map = 0
-        self.game_over = False
         self.top_level = False
         self.last_time = None
         self.frame_count = 0
         self.fps_message = None
-        self.background = arcade.load_texture("res/mount_bg2.jpg")
 
         # Set up other logic
-        self.theme = None
         self.first_time = True
+        self.background = arcade.load_texture("res/mount_bg2.jpg")
 
     def setup(self):
         """ Set up the game and initialize the variables. """
@@ -183,13 +176,6 @@ class MyGame(arcade.Window):
         # Read in the tiled map
         my_map = arcade.read_tiled_map('mount.tmx', SPRITE_SCALING)
 
-        # --- Walls ---
-        # Grab the layer of items we can't move through
-        map_array = my_map.layers_int_data['Platforms']
-
-        # Calculate the right edge of the my_map in pixels
-        self.end_of_map = len(map_array[0]) * GRID_PIXEL_SIZE
-
         # --- Background ---
         self.background_list = arcade.generate_sprites(my_map, 'Background', SPRITE_SCALING)
 
@@ -213,7 +199,7 @@ class MyGame(arcade.Window):
         # --- Choose Player and save position of current player
         global CURRENT_PLAYER
         self.choose_player(CURRENT_PLAYER, CHOSEN_PLAYER)
-        CURRENT_PLAYER = CHOSEN_PLAYER
+        CURRENT_PLAYER = CHOSEN_PLAYER                  # Update current player
 
         # --- Starting position of the players
         i = 0
@@ -224,12 +210,8 @@ class MyGame(arcade.Window):
             i += 1
 
         # Keep player from running through the wall_list layer
-        self.physics_engine = \
-            arcade.PhysicsEnginePlatformer(self.player_sprite,
-                                           self.wall_list,
-                                           gravity_constant=GRAVITY)
-
-        self.game_over = False
+        self.physics_engine = arcade.PhysicsEnginePlatformer(self.player_sprite,
+                                                             self.wall_list, gravity_constant=GRAVITY)
 
     def on_draw(self):
         """
@@ -295,10 +277,6 @@ class MyGame(arcade.Window):
             elif BOTTLE_ANGLE == 0:             # Add to the counter when the bottle passes vertical
                 ANIMATION_COUNTER += 1
 
-        if self.game_over:
-            arcade.draw_text("\nGame Over", self.view_left + 600, self.view_bottom + 600,
-                             arcade.color.WHITE, 70, font_name=BEBAS)
-
     def on_key_press(self, key, modifiers):
         """
         Called whenever the user presses a key.
@@ -340,9 +318,7 @@ class MyGame(arcade.Window):
             self.jump_on_choose()
 
     def on_key_release(self, key, modifiers):
-        """
-        Called when the user releases the key.
-        """
+        """ Called when the user releases the key. """
         if key in (arcade.key.LEFT, arcade.key.RIGHT, arcade.key.A, arcade.key.D):
             self.player_sprite.change_x = 0
 
@@ -351,13 +327,12 @@ class MyGame(arcade.Window):
 
         self.cloud_sprite_list.update()
 
-        # Game over when sprite reaches end of map
-        if self.player_sprite.right >= self.end_of_map or self.player_sprite.left <= -100:
-            self.game_over = True
+        # # Game over when sprite reaches end of map
+        # if self.player_sprite.right >= self.end_of_map or self.player_sprite.left <= -100:
+        #     self.game_over = True
 
         # Call update on all sprites (The sprites don't do much in this example though.)
-        if not self.game_over:
-            self.physics_engine.update()
+        self.physics_engine.update()
 
         # Draw Champagne Bottle if player is on top level
         global ANIMATION_COUNTER
@@ -416,7 +391,7 @@ class MyGame(arcade.Window):
         """
         Called when player is chosen [1 to 5].
         It is called at setup on initialisation.
-        And subsequently from on_key_release.
+        And subsequently from on_key_press.
         """
         if self.first_time:
             self.player_sprite = self.char_list[chosen]  # This works the first time

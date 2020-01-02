@@ -13,13 +13,14 @@ import os
 import sys
 import pandas as pd
 import arcade
+from win32api import GetSystemMetrics
 
 os.chdir(sys.path[0])               # Change working directory to the one in which this script is located
 print(os.getcwd())
 
 SPRITE_SCALING = 0.5
-SCREEN_WIDTH = 1600
-SCREEN_HEIGHT = 900
+SCREEN_WIDTH = GetSystemMetrics(0)
+SCREEN_HEIGHT = GetSystemMetrics(1)
 SCREEN_TITLE = "Progress Game"
 SPRITE_PIXEL_SIZE = 64
 CLOUD_COUNT = 12
@@ -58,7 +59,7 @@ class Cloud(arcade.Sprite):
     """
     def reset_pos(self):
         # Reset the cloud to a random spot above the screen
-        self.center_y = random.randrange(SCREEN_HEIGHT - 200, SCREEN_HEIGHT + 300)
+        self.center_y = random.randrange(SCREEN_HEIGHT - 50, SCREEN_HEIGHT + 300)
         self.center_x = random.randrange(-300, -200)
 
     def update(self):
@@ -67,7 +68,7 @@ class Cloud(arcade.Sprite):
 
         # See if the cloud has fallen off the edge of the screen.
         # If so, reset it.
-        if self.left > SCREEN_WIDTH + 400:
+        if self.left > SCREEN_WIDTH + 500:
             self.reset_pos()
 
 
@@ -154,10 +155,10 @@ class MyGame(arcade.Window):
 
             # Position the cloud
             cloud.center_x = random.randrange(-200, 2200)
-            cloud.center_y = random.randrange(SCREEN_HEIGHT - 100, SCREEN_HEIGHT + 300)
+            cloud.center_y = random.randrange(SCREEN_HEIGHT - 50, SCREEN_HEIGHT + 300)
 
             doublecloud.center_x = random.randrange(-200, 2200)
-            doublecloud.center_y = random.randrange(SCREEN_HEIGHT - 100, SCREEN_HEIGHT + 300)
+            doublecloud.center_y = random.randrange(SCREEN_HEIGHT - 50, SCREEN_HEIGHT + 300)
 
             # Add the cloud to the lists
             self.cloud_sprite_list.append(cloud)
